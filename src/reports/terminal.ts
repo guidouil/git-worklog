@@ -2,6 +2,7 @@ import chalk, { Chalk, type ChalkInstance } from 'chalk';
 import Table from 'cli-table3';
 import type { Locale, WorklogReport } from '../domain/types.js';
 import { formatClockMinutes, formatDuration } from '../utils/duration.js';
+import { resolveDisplayLocale } from '../utils/locale.js';
 
 export interface TerminalOptions {
   compact: boolean;
@@ -11,7 +12,7 @@ export interface TerminalOptions {
 }
 
 export function formatTerminal(report: WorklogReport, options: TerminalOptions): string {
-  const locale = report.metadata.locale;
+  const locale = resolveDisplayLocale(report.metadata.locale);
   const c = new Chalk({ level: options.color ? chalk.level : 0 });
   const lines = [c.bold(title(report, locale)), c.dim(copy(locale, 'approximation'))];
   if (!options.statsOnly) {
@@ -48,14 +49,19 @@ export function formatTerminal(report: WorklogReport, options: TerminalOptions):
       });
       for (const session of day.sessions) {
         table.push([
-          `${clock(session.start)} → ${clock(session.end)}`,
+          `${clock(session.start, locale)} → ${clock(session.end, locale)}`,
           formatDuration(session.durationMinutes),
           `${session.commits.length} ${commitWord(locale, session.commits.length)}`,
           session.repositories.join(', '),
         ]);
         if (options.verbose) {
           for (const commit of session.commits) {
-            table.push(['', c.dim(commit.shortHash), clock(commit.analysisDate), commit.subject]);
+            table.push([
+              '',
+              c.dim(commit.shortHash),
+              clock(commit.analysisDate, locale),
+              commit.subject,
+            ]);
           }
         }
       }
@@ -134,8 +140,8 @@ function formatDay(date: Date, locale: Locale): string {
   );
 }
 
-function clock(value: string): string {
-  return new Intl.DateTimeFormat('fr', { hour: '2-digit', minute: '2-digit' }).format(
+function clock(value: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(
     new Date(value),
   );
 }

@@ -1,8 +1,9 @@
 import type { DistributionItem, WorklogReport } from '../domain/types.js';
 import { formatDuration } from '../utils/duration.js';
+import { resolveDisplayLocale } from '../utils/locale.js';
 
 export function renderHtml(report: WorklogReport): string {
-  const locale = report.metadata.locale;
+  const locale = resolveDisplayLocale(report.metadata.locale);
   const days = report.days;
   const maxDay = Math.max(1, ...days.map((day) => day.durationMinutes));
   const maxHour = Math.max(1, ...report.stats.commitsByHour);
@@ -46,8 +47,8 @@ export function renderHtml(report: WorklogReport): string {
       true,
     )}</article>
     <article class="card wide"><h2>${locale === 'fr' ? 'Répartition par dépôt' : 'By repository'}</h2>${repositoryBars(report.stats.byRepository)}</article>
-    <article class="card wide scroll"><h2>${locale === 'fr' ? 'Chronologie des sessions' : 'Session timeline'}</h2>${sessionTable(report)}</article>
-    <article class="card full scroll"><h2>${locale === 'fr' ? 'Tableau journalier' : 'Daily table'}</h2>${dayTable(report)}</article>
+    <article class="card wide scroll"><h2>${locale === 'fr' ? 'Chronologie des sessions' : 'Session timeline'}</h2>${sessionTable(report, locale)}</article>
+    <article class="card full scroll"><h2>${locale === 'fr' ? 'Tableau journalier' : 'Daily table'}</h2>${dayTable(report, locale)}</article>
     <article class="card full"><h2>${locale === 'fr' ? 'Paramètres d’estimation' : 'Estimation settings'}</h2><div class="settings">
       ${setting(locale === 'fr' ? 'Écart maximal' : 'Maximum gap', report.settings.sessionGapMinutes)}
       ${setting(locale === 'fr' ? 'Session minimale' : 'Minimum session', report.settings.minimumSessionMinutes)}
@@ -95,22 +96,22 @@ function repositoryBars(items: DistributionItem[]): string {
         .join('');
 }
 
-function sessionTable(report: WorklogReport): string {
+function sessionTable(report: WorklogReport, locale: 'fr' | 'en'): string {
   const headings =
-    report.metadata.locale === 'fr'
+    locale === 'fr'
       ? ['Début', 'Fin', 'Durée', 'Commits', 'Dépôts']
       : ['Start', 'End', 'Duration', 'Commits', 'Repositories'];
   const rows = report.sessions
     .map(
       (session) =>
-        `<tr><td>${formatDateTime(session.start, report.metadata.locale)}</td><td>${formatDateTime(session.end, report.metadata.locale)}</td><td>${formatDuration(session.durationMinutes)}</td><td>${session.commits.length}</td><td>${escapeHtml(session.repositories.join(', '))}</td></tr>`,
+        `<tr><td>${formatDateTime(session.start, locale)}</td><td>${formatDateTime(session.end, locale)}</td><td>${formatDuration(session.durationMinutes)}</td><td>${session.commits.length}</td><td>${escapeHtml(session.repositories.join(', '))}</td></tr>`,
     )
     .join('');
   return `<table><thead><tr>${headings.map((heading) => `<th>${heading}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
-function dayTable(report: WorklogReport): string {
-  const duration = report.metadata.locale === 'fr' ? 'Durée' : 'Duration';
+function dayTable(report: WorklogReport, locale: 'fr' | 'en'): string {
+  const duration = locale === 'fr' ? 'Durée' : 'Duration';
   const rows = report.days
     .map(
       (day) =>
