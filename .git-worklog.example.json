@@ -1,0 +1,15 @@
+{
+  "sessionGapMinutes": 90,
+  "minimumSessionMinutes": 30,
+  "paddingBeforeMinutes": 15,
+  "paddingAfterMinutes": 15,
+  "locale": "fr",
+  "dateSource": "author",
+  "authors": [
+    {
+      "name": "Guillaume",
+      "emails": ["gui@example.com"]
+    }
+  ],
+  "repositories": ["/Users/gui/projects/project-a"]
+}
