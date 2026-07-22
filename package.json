@@ -2,6 +2,7 @@
   "name": "git-worklog",
   "version": "0.1.0",
   "description": "Estimate developer work sessions from local Git history.",
+  "repository": "https://github.com/guidouil/git-worklog",
   "type": "module",
   "bin": {
     "git-worklog": "dist/cli.js"
